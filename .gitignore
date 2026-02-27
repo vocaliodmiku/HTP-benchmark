@@ -1,0 +1,14 @@
+*.out
+__*
+.vscode
+.ipynb_checkpoints
+dataset
+experiments/
+!experiments/*.cfg
+imgs
+prepare*
+sequential
+wandb
+cache
+data_process
+torchaudio-contrib
