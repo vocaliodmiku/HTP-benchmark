@@ -1,0 +1,12 @@
+torch==2.0.1
+numpy==1.24.3
+scikit-learn==1.5.2
+plotly==5.24.1
+kaleido==0.2.1
+matplotlib==3.7.1
+seaborn==0.12.2
+pandas==2.0.3
+textgrid==1.6.1
+soundfile==0.13.1
+joblib==1.5.0
+tqdm==4.67.1
