@@ -37,7 +37,7 @@ EXPERIMENTS["noncausal-trans"]="experiments/en_words_ku_trans.cfg|noncausal-tran
 KEY=$1
 
 if [ -z "$KEY" ]; then
-    echo "Usage: sbatch run.sh <experiment_key>"
+    echo "Usage: sbatch train.sh <experiment_key>"
     echo "Available keys: ${!EXPERIMENTS[@]}"
     exit 1
 fi

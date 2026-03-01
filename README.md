@@ -19,21 +19,8 @@ earshot_nn/
 ├── test.sh                     # Testing script runner
 ├── requirements.txt            # Python dependencies
 ├── src/                        # Core source code
-│   ├── main.py                 # Main entry point
-│   ├── models.py               # Model architectures
-│   ├── data.py                 # Data loading utilities
-│   ├── audio.py                # Audio processing
-│   ├── training.py             # Training loop
-│   └── params.py               # Configuration parameters
 ├── data/                       # Dataset and phoneme data
-│   ├── words.csv               # Word list with phonemic transcriptions
-│   ├── phonemes.csv            # Phoneme inventory
-│   ├── embeddings/             # Word embeddings (word2vec, etc.)
-│   └── prefetch.npy            # Pre-extracted features
 ├── dataset/                    # Dataset splits and vocabulary
-│   ├── en/, es/, eu/           # Language-specific splits
-│   ├── en_train.txt, en_test.txt
-│   └── *.vocab                 # Vocabulary files
 ├── experiments/                # Experiment configurations and results
 │   ├── *.cfg                   # Config files for different model variants
 │   └── (experiment_dirs)/      # Trained models and checkpoints
@@ -43,36 +30,19 @@ earshot_nn/
 │   ├── eval_whisper_realtime.py
 │   └── eval_nemotron_realtime.py
 ├── analysis/                   # Analysis and visualization
-│   ├── phonological_competition.py
-│   ├── plot_competition.py
-│   ├── proc_phoneme_cls.py
-│   └── figures/                # Generated figure outputs
 ├── notebooks/                  # Jupyter notebooks for analysis
 │   ├── Fig2_4.ipynb            # Figure 2 & 4 analysis
 │   ├── Fig3.ipynb              # Figure 3 analysis
 │   ├── calculate_RMSE_MAE.ipynb # Metrics computation
-│   └── whisper_trace_analysis*.ipynb
-├── data_process/               # Data preprocessing utilities
-│   ├── data.ipynb              # Data processing notebook
-│   └── force_alignment.sh
-├── prepare_embeddings/         # Embedding preparation
-│   └── *.ipynb                 # Word2vec and embedding notebooks
 ├── misc/                       # Miscellaneous utilities
-│   └── print_model_parameters.py
-└── cache/, tmp/, wandb/        # Temporary and logging directories
+    └── print_model_parameters.py
 ```
 
 ## Dataset
 
-We use a controlled lexicon of 1,533 uninflected English words (1–16 phonemes). Audio was recorded from six synthetic talkers (Apple "Say" app) and one human speaker, resulting in 7 × 1,533 = 10,731 utterances. Each word is paired with a centered 300‑dimensional word2vec embedding (trained on Google News) as the semantic target.
+We use a controlled lexicon of 1,533 uninflected English words (1–16 phonemes). Audio was recorded from six synthetic talkers (Apple "Say" app) and one human speaker, resulting in 7 × 1,533 = 10,731 utterances. Each word is paired with a centered 300‑dimensional word2vec embedding (fasttext 300d english) as the semantic target.
 
-The raw audio files. The repository includes:
-
-- The list of words (`data/wordlists/words.txt`) with phonemic transcriptions and embeddings (`data/wordlists/word2vec_centered.npy`).
-- Scripts to generate synthetic audio using macOS `say` or another TTS system (`data/prepare_audio.sh`).
-- Pre-extracted log-mel spectrograms (256 bins, 10 ms frames) for all utterances are available by separate download or upon request.
-
-Human fixation data are derived from the Allopenna et al. (1998) study and processed into time-normalized proportions for target, cohort, rhyme, and unrelated conditions. These are provided in `data/human_fixations/`.
+Human fixation data are derived from the Allopenna et al. (1998) study and processed into time-normalized proportions for target, cohort, rhyme, and unrelated conditions. These are provided in `notebooks/INPUT/amt_human_mean.csv`.
 
 ## Requirements
 
@@ -81,17 +51,7 @@ Install dependencies with:
 ```bash
 pip install -r requirements.txt
 ```
-
-Main requirements:
-- Python 3.8+
-- PyTorch 1.12+
-- torchaudio
-- numpy, scipy
-- matplotlib
-- transformers (for pretrained models)
-- librosa
-- pandas
-
+ 
 ## Model Zoo
 
 We evaluate a range of architectures with **causal** (incremental) and **non-causal** (full-utterance) variants, all with comparable parameter counts (~1.6–1.9M). Models are trained from scratch on the isolated word task using MSE loss between the final hidden state and the target word2vec embedding.
@@ -127,7 +87,7 @@ To train a model variant on the isolated word task:
 sh train.sh <experiment_key>
 ```
 
-where `<experiment_key>` corresponds to a configuration file in `experiments/` (e.g., `en_words_ku`, `en_words_ku_baseline`, `en_words_ku_causal_lstm`, etc.).
+where `<experiment_key>` corresponds to Model name in Model Zoo (e.g. CNN).
 
 ### Test models and compute phonological competition
 
@@ -148,13 +108,13 @@ We also evaluate pretrained foundation models (wav2vec 2.0, HuBERT, Whisper) wit
 Use `eval_wav2vec2.py` to evaluate wav2vec 2.0 and HuBERT models. This script can assess both models by simply changing the HuggingFace model name:
 
 ```bash
-python pretrained_models/eval_wav2vec2.py --model facebook/wav2vec2-base --data /path/to/audio --output results/wav2vec2/
+python pretrained_models/eval_wav2vec2.py 
 ```
 
-For HuBERT, change the model identifier:
+For HuBERT, change the model_name from "facebook/wav2vec2-base-960h" to "facebook/hubert-large-ls960-ft":
 
 ```bash
-python pretrained_models/eval_wav2vec2.py --model facebook/hubert-base --data /path/to/audio --output results/hubert/
+python pretrained_models/eval_wav2vec2.py 
 ```
 
 ### Whisper
@@ -162,10 +122,10 @@ python pretrained_models/eval_wav2vec2.py --model facebook/hubert-base --data /p
 Use `eval_whisper.py` to evaluate Whisper models:
 
 ```bash
-python pretrained_models/eval_whisper.py --model tiny.en --data /path/to/audio --output results/whisper/
+python pretrained_models/eval_whisper.py 
 ```
 
-**Note on Nemotron:** We also have evaluation results for Nemotron models; however, we decided not to report these in the paper due to RNNT's architectural differences with respect to the temporal competition analysis.
+**Note on Nemotron:** We also have evaluation results for Nemotron models; however, we decided not to report these in the paper due to the reason we mentioned in the paper.
 
 
 ## Results
@@ -176,19 +136,12 @@ Our main results show that **causal models** better match human VWP dynamics (lo
 
 Detailed analysis and figure generation notebooks are available in `notebooks/`:
 
+- **Metrics:** See [notebooks/calculate_RMSE_MAE.ipynb](notebooks/calculate_RMSE_MAE.ipynb) to compute RMSE and MAE values comparing model trajectories to human data.
+
 - **Figure 2 & 4:** See [notebooks/Fig2_4.ipynb](notebooks/Fig2_4.ipynb) for visualization of activation trajectories comparing human VWP fixations against model predictions. These figures show the characteristic temporal dynamics: early cohort competition followed by rhyme activation in causal models.
 
 - **Figure 3:** See [notebooks/Fig3.ipynb](notebooks/Fig3.ipynb) for phoneme decoder analysis of internal layer representations across different model architectures.
 
-- **Metrics:** See [notebooks/calculate_RMSE_MAE.ipynb](notebooks/calculate_RMSE_MAE.ipynb) to compute RMSE and MAE values comparing model trajectories to human data.
-
-To generate all results with trained checkpoints and human data:
-
-```bash
-sh test.sh <experiment_key>
-```
-
-This will compute activation trajectories and comparison metrics for each model.
 
 ## Citation
 
