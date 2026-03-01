@@ -1,4 +1,4 @@
-# HTP-benchmark: Human Temporal Phonological Benchmark for End-to-End ASR
+# Do Machines Listen Like Humans? A Temporal Benchmark for Phonological Competition in End-to-End ASR
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
